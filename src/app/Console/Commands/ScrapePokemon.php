@@ -2,8 +2,9 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
-
+use Illuminate\Support\Facades\DB;
 
 class ScrapePokemon extends Command
 {
@@ -46,8 +47,13 @@ class ScrapePokemon extends Command
 
         $url = 'https://yakkun.com/swsh/zukan/';
         $crawler = \Goutte::request('GET', $url);
-        $crawler->filter('ul.pokemon_list > li > a')->each(function ($node) {
-            dump($node->attr('href'));
+        $urls = $crawler->filter('ul.pokemon_list > li > a')->each(function ($node) {
+            return [
+                'url' => $node->attr('href'),
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ];
         });
+        DB::table('pokemon_urls')->insert($urls);
     }
 }
