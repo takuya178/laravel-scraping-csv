@@ -39,12 +39,17 @@ class ScrapePokemon extends Command
      */
     public function handle()
     {
-        // $crawler = \Goutte::request('GET', 'https://duckduckgo.com/html/?q=Laravel');
-        // $crawler->filter('.result__title .result__a')->each(function ($node) {
-        //   dump($node->text());
-        // });
-        // return view('welcome');
+        $this->truncateTables();
+        $this->insertUrls();
+    }
 
+    private function truncateTables()
+    {
+        DB::table('pokemon_urls');
+    }
+    
+    private function insertUrls()
+    {
         $url = 'https://yakkun.com/swsh/zukan/';
         $crawler = \Goutte::request('GET', $url);
         $urls = $crawler->filter('ul.pokemon_list > li > a')->each(function ($node) {
@@ -55,5 +60,10 @@ class ScrapePokemon extends Command
             ];
         });
         DB::table('pokemon_urls')->insert($urls);
+    }
+
+    private function insertPokemons()
+    {
+        
     }
 }
