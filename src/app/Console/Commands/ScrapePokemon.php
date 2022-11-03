@@ -41,10 +41,10 @@ class ScrapePokemon extends Command
      */
     public function handle()
     {
-        // $this->truncateTables();
-        // $this->insertUrls();
+        $this->truncateTables();
+        $this->insertUrls();
         $this->pokemonLinkList();
-        $this->detailPokemon($this->pokemonLinkList());
+        $this->createPokemonList($this->pokemonLinkList());
     }
 
     private function truncateTables()
@@ -76,17 +76,28 @@ class ScrapePokemon extends Command
         return $targetLinks;
     }
 
-    private function detailPokemon(array $links)
+    const HP = 0;
+    const ATTACK = 1;
+    const DEFENCE = 2;
+    const SPECIAL_ATTACK = 3;
+    const SPECIAL_DEFENCE = 4;
+    const SPEED = 5;
+
+    private function createPokemonList(array $links)
     {
-        for($i = 0; $i < 3; $i++) {
+        for($i = 0; $i < 100; $i++) {
             $crawler = \Goutte::request('GET', $links[$i]);
-            dump($this->getPokemonHp($crawler));
-            // Pokemons::create([
-            //     'type_id' => $i + 1,
-            //     'url' => $links[$i],
-            //     'name' => getPokemonName($crawler),
-            //     'hp' => 
-            // ]);
+            Pokemons::create([
+                'type_id' => $i + 1,
+                'url' => $links[$i],
+                'name' => $this->getPokemonName($crawler),
+                'hp' => $this->getPokemonStatus($crawler, self::HP),
+                'attack' => $this->getPokemonStatus($crawler, self::ATTACK),
+                'defence' => $this->getPokemonStatus($crawler, self::DEFENCE),
+                'special_attack' => $this->getPokemonStatus($crawler, self::SPECIAL_ATTACK),
+                'special_defence' => $this->getPokemonStatus($crawler, self::SPECIAL_DEFENCE),
+                'speed' => $this->getPokemonStatus($crawler, self::SPEED),
+            ]);
         }
     }
 
@@ -95,10 +106,10 @@ class ScrapePokemon extends Command
         return $crawler->filter('tr.head > th')->text();
     }
 
-    private function getPokemonHp($crawler): int
+    private function getPokemonStatus($crawler, $status): int
     {
-        $hpText = $crawler->filter('table.center > tr > td.left ')->text();
-        return $this->getIntStatus($hpText);
+        return $this->getIntStatus($crawler
+            ->filter('table.center > tr > td.left ')->eq($status)->text());
     }
 
     private function getIntStatus($text): int
