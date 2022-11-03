@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Goutte\Client;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use App\Models\Pokemons;
 
 class ScrapePokemon extends Command
 {
@@ -77,17 +78,42 @@ class ScrapePokemon extends Command
 
     private function detailPokemon(array $links)
     {
-        for($i = 0; $i < 1; $i++) {
+        for($i = 0; $i < 3; $i++) {
             $crawler = \Goutte::request('GET', $links[$i]);
-            $targetLinks = $this->catchTextDate($crawler, 'tr.head > th');
-            Pokemons::create([]);
+            dump($this->getPokemonHp($crawler));
+            // Pokemons::create([
+            //     'type_id' => $i + 1,
+            //     'url' => $links[$i],
+            //     'name' => getPokemonName($crawler),
+            //     'hp' => 
+            // ]);
         }
     }
 
-    private function catchTextDate($crawler, $className)
+    private function getPokemonName($crawler)
     {
-        $crawler->filter($className)->each(function ($node) {
-            return $node->text();
-        });
+        return $crawler->filter('tr.head > th')->text();
+    }
+
+    private function getPokemonHp($crawler): int
+    {
+        $hpText = $crawler->filter('table.center > tr > td.left ')->text();
+        return $this->getIntStatus($hpText);
+    }
+
+    private function getIntStatus($text): int
+    {
+        return $this->changeInt($this->trimSpace($text));
+    }
+
+    private function trimSpace($text): array
+    {
+        $textList = str_split(strstr($text, "(", true));
+        return array_splice($textList, 2, 3);
+    }
+
+    private function changeInt(array $trimSpace): int
+    {
+        return (int) implode("", $trimSpace);
     }
 }
