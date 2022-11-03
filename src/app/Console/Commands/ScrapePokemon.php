@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Carbon\Carbon;
+use Goutte\Client;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -39,8 +40,10 @@ class ScrapePokemon extends Command
      */
     public function handle()
     {
-        $this->truncateTables();
-        $this->insertUrls();
+        // $this->truncateTables();
+        // $this->insertUrls();
+        $this->pokemonLinkList();
+        $this->detailPokemon($this->pokemonLinkList());
     }
 
     private function truncateTables()
@@ -62,8 +65,29 @@ class ScrapePokemon extends Command
         DB::table('pokemon_urls')->insert($urls);
     }
 
-    private function insertPokemons()
+    private function pokemonLinkList(): array
     {
-        
+        $url = 'https://yakkun.com/swsh/zukan/';
+        $crawler = \Goutte::request('GET', $url);
+        $targetLinks = $crawler->filter('ul.pokemon_list > li > a')->each(function ($node) {
+            return $node->attr('href');
+        });
+        return $targetLinks;
+    }
+
+    private function detailPokemon(array $links)
+    {
+        for($i = 0; $i < 1; $i++) {
+            $crawler = \Goutte::request('GET', $links[$i]);
+            $targetLinks = $this->catchTextDate($crawler, 'tr.head > th');
+            Pokemons::create([]);
+        }
+    }
+
+    private function catchTextDate($crawler, $className)
+    {
+        $crawler->filter($className)->each(function ($node) {
+            return $node->text();
+        });
     }
 }
