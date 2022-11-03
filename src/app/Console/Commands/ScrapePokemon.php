@@ -10,6 +10,14 @@ use App\Models\Pokemons;
 
 class ScrapePokemon extends Command
 {
+    const HP = 0;
+    const ATTACK = 1;
+    const DEFENCE = 2;
+    const SPECIAL_ATTACK = 3;
+    const SPECIAL_DEFENCE = 4;
+    const SPEED = 5;
+
+    const FILE_PATH = 'app/pokemon_date.csv';
     /**
      * The name and signature of the console command.
      *
@@ -41,10 +49,11 @@ class ScrapePokemon extends Command
      */
     public function handle()
     {
-        $this->truncateTables();
-        $this->insertUrls();
-        $this->pokemonLinkList();
-        $this->createPokemonList($this->pokemonLinkList());
+        // $this->truncateTables();
+        // $this->insertUrls();
+        // $this->pokemonLinkList();
+        // $this->createPokemonList($this->pokemonLinkList());
+        $this->exportCsv();
     }
 
     private function truncateTables()
@@ -75,13 +84,6 @@ class ScrapePokemon extends Command
         });
         return $targetLinks;
     }
-
-    const HP = 0;
-    const ATTACK = 1;
-    const DEFENCE = 2;
-    const SPECIAL_ATTACK = 3;
-    const SPECIAL_DEFENCE = 4;
-    const SPEED = 5;
 
     private function createPokemonList(array $links)
     {
@@ -126,5 +128,26 @@ class ScrapePokemon extends Command
     private function changeInt(array $trimSpace): int
     {
         return (int) implode("", $trimSpace);
+    }
+
+    private function exportCsv()
+    {
+        $file = fopen(storage_path($this::FILE_PATH), 'w');
+        if (!$file) {
+            throw new \Exception('ファイルの作成に失敗しました');
+        }
+
+        if (!fputcsv($file, ['id', 'url', 'name', 'hp', 'attack', 'defence', 'special_attack', 'special_defence', 'speed'])) {
+            throw new \Exception('ヘッダの書き込みに失敗しました');
+        }
+        
+        foreach (Pokemons::all() as $pokemon) {
+            if(!fputcsv($file, [$pokemon->id, $pokemon->url, $pokemon->name,
+            $pokemon->hp, $pokemon->attack, $pokemon->defence,
+            $pokemon->special_attack, $pokemon->special_defence, $pokemon->speed])) {
+                throw new \Exception('ボディの読み込みに失敗しました');
+            }
+        }
+        fclose($file);
     }
 }
