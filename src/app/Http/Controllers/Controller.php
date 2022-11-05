@@ -19,6 +19,6 @@ class Controller extends BaseController
 
     public function getProducts()
     {
-        
+        return $this->makeRequest('GET', 'products');
     }
 }
