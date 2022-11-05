@@ -21,4 +21,14 @@ class Controller extends BaseController
     {
         return $this->makeRequest('GET', 'products');
     }
+
+    public function getProduct($id)
+    {
+        return $this->makeRequest('GET', "products/{$id}");
+    }
+
+    public function getCategories()
+    {
+        return $this->makeRequest('GET', 'categories');
+    }
 }
