@@ -2,18 +2,29 @@
 
 namespace App\Traits;
 
-trait AuthorizesmarketRequests
+use App\Services\MarketAuthenticationService;
+
+trait AuthorizesMarketRequests
 {
-  public function resolveAuthorization($queryParams, $formParams, $headers)
-  {
-    $accessToken = $this->resolveAccessToken();
+    /**
+     * Resolve the elements to send when authorizing the request
+     * @return void
+     */
+    public function resolveAuthorization(&$queryParams, &$formParams, &$headers)
+    {
+        $accessToken = $this->resolveAccessToken();
 
-    $headers['Authorization'] = $accessToken;
-  }
+        $headers['Authorization'] = $accessToken;
+    }
 
-  public function resolveAccessToken()
-  {
-    // サイトから取得してきたPersonal Access Token
-    return 'Bearer ~';
-  }
+    /**
+     * Resolve a valid access token to use
+     * @return string
+     */
+    public function resolveAccessToken()
+    {
+        $authenticationService = resolve(MarketAuthenticationService::class);
+        
+        return $authenticationService->getClientCredentialsToken();
+    }
 }
