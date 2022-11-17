@@ -50,24 +50,42 @@ class MarketAuthenticationService
       $this->passwordClientSecret = config('services.market.password_client_secret');
   }
 
-  public function getClientCredentialsToken()
+  /**
+   * 与えられたコードからアクセストークンを取得する
+   * @return stdClass
+   */
+  
+  public function getCodeToken($code)
   {
       if ($token = $this->existingValidToken())  {
         return $token;
       }
 
       $formParams = [
-          'grant_type' => 'client_credentials',
+          'grant_type' => 'authorization_code',
           'client_id' => $this->clientId,
           'client_secret' => $this->clientSecret,
+          'redirect_uri' => route('authorization'),
+          'code' => $code,
       ];
 
       $tokenData = $this->makeRequest('POST', 'oauth/token', [], $formParams);
 
-      $this->storeValidToken($tokenData, 'client_credentials');
+      $this->storeValidToken($tokenData, 'authorization_code');
 
-      // return "{$tokenData->token_type}" {"$tokenData->access_token"};
-      return $tokenData->access_token;
+      return $tokenData;
+  }
+
+  public function resolveAuthorizationUrl()
+  {
+      $query = http_build_query([
+          'client_id' => $this->clientId,
+          'redirect_uri' => route('authorization'),
+          'response_type' => 'code',
+          'scope' => 'purchase-product manage-products manage-account read-general',
+      ]);
+
+      return "{$this->basUri}/oauth/authze?{$query}";
   }
 
   public function storeValidToken($tokenData, $grantType)

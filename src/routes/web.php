@@ -21,3 +21,5 @@ Route::get('products/{title}-{id}', 'ProductController@showWelcomePage')->
     name('products.show');
 
 Route::get('categories/{title}-{id}/products', 'CategoryProductController@showProducts')->name('categories.products.show');
+
+Route::get('authorization', 'Auth\LoginController@authorization')->name('authorization');
